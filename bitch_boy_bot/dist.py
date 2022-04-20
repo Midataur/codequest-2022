@@ -115,7 +115,7 @@ def dist_init(map_data):
 
 
 # function that returns the path (& distance) between two points
-def dist(A, B):
+def dist(A, B, path=False):
     global maze
 
     # use astar to find the path
@@ -137,5 +137,7 @@ def dist(A, B):
         else:
             total_dist += 1.41421356237 #sqrt(2)
     
-    return (total_dist,path)
+    if path:
+        return (total_dist,path)
+    return total_dist
     
