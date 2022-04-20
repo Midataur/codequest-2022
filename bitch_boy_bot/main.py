@@ -1,6 +1,6 @@
 from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
-from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent
+from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 
 from dist import dist_init, dist
@@ -24,6 +24,10 @@ total_ants = 0
 empty = []
 wall = []
 hill = []
+my_ants={}
+opp1_ants={}
+opp2_ants={}
+opp3_ants={}
 
 
 def read_map(md, energy_info):
@@ -117,6 +121,9 @@ def handle_events(events):
             if ev.player_index == my_index:
                 # One of my workers just died :(
                 total_ants -= 1
+        elif isinstance(ev, SpawnEvent):
+            if ev.player_index == my_index:
+                my_ants[ev.ant_id]=ev.ant_id
 
     # Can I spawn ants?
     spawned_this_tick = 0
@@ -129,7 +136,6 @@ def handle_events(events):
         total_ants += 1
         # Spawn an ant, give it some id, no color, and send it to the closest site.
         # I will pay the base cost for this ant, so cost=None.
-        
         requests.append(SpawnRequest(AntTypes.WORKER, id=None, color=None, goal=food_sites[spawned_this_tick]))
         my_energy -= stats.ants.Worker.COST
 
