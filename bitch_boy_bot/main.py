@@ -4,6 +4,7 @@ from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 from matplotlib.axis import Tick
 
+from dist import precompute_distances, dist
 
 def get_team_name():
     return f"Bitch Boy"
@@ -28,6 +29,7 @@ hill = []
 def read_map(md, energy_info):
     global map_data, spawns, food, distance, closest_site, food_sites
     map_data = md
+
     for y in range(len(map_data)):
         for x in range(len(map_data[0])):
             if map_data[y][x] == "F":
@@ -86,6 +88,11 @@ def read_map(md, energy_info):
     # Now I can calculate the closest food site.
     food_sites = list(sorted(food, key=lambda prod: distance[prod]))
     closest_site = food_sites[0]
+
+
+    ##
+    precompute_distances(map_data)
+
 
 def handle_failed_requests(requests):
     global my_energy
