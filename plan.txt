@@ -3,3 +3,7 @@ Precomputing:
 
 
 Things to evaluate:
+- when to make workers
+- how good each food source is (expected output, closeness to others)
+- when to attack other queens (their health, our energy, their distance)
+- when to attack other ants

@@ -1,0 +1,3 @@
+- add dynamic programming to dist.py
+- ant tracking system (dict of ants with id, type, position, goal, health, death clock)
+- function to find the 'power' of each food source
