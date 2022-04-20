@@ -19,6 +19,10 @@ food = []
 distance = {}
 closest_site = None
 total_ants = 0
+empty = []
+wall = []
+hill = []
+
 
 def read_map(md, energy_info):
     global map_data, spawns, food, distance, closest_site
@@ -27,6 +31,12 @@ def read_map(md, energy_info):
         for x in range(len(map_data[0])):
             if map_data[y][x] == "F":
                 food.append((x, y))
+            if map_data[y][x] == ".":
+                empty.append((x, y))
+            if map_data[y][x] == "W":
+                wall.append((x, y))
+            if map_data[y][x] == "Z":
+                hill.append((x, y))
             if map_data[y][x] in "RBYG":
                 spawns["RBYG".index(map_data[y][x])] = (x, y)
     # Read map is called after read_index
