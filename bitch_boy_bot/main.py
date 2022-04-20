@@ -2,6 +2,7 @@ from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
 from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
+from matplotlib.axis import Tick
 
 
 def get_team_name():
@@ -25,7 +26,7 @@ hill = []
 
 
 def read_map(md, energy_info):
-    global map_data, spawns, food, distance, closest_site
+    global map_data, spawns, food, distance, closest_site, food_sites
     map_data = md
     for y in range(len(map_data)):
         for x in range(len(map_data[0])):
@@ -124,7 +125,8 @@ def handle_events(events):
         total_ants += 1
         # Spawn an ant, give it some id, no color, and send it to the closest site.
         # I will pay the base cost for this ant, so cost=None.
-        requests.append(SpawnRequest(AntTypes.WORKER, id=None, color=None, goal=closest_site))
+        
+        requests.append(SpawnRequest(AntTypes.WORKER, id=None, color=None, goal=food_sites[spawned_this_tick]))
         my_energy -= stats.ants.Worker.COST
 
     return requests
