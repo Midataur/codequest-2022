@@ -3,7 +3,8 @@ import codequest22.stats as stats
 from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 
-from dist import precompute_distances, dist
+from dist import dist_init, dist
+
 
 def get_team_name():
     return f"Bitch Boy"
@@ -88,10 +89,7 @@ def read_map(md, energy_info):
     food_sites = list(sorted(food, key=lambda prod: distance[prod]))
     closest_site = food_sites[0]
 
-
-    ##
-    precompute_distances(map_data)
-
+    dist_init(map_data)
 
 def handle_failed_requests(requests):
     global my_energy
