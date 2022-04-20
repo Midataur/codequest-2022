@@ -2,7 +2,6 @@ from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
 from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
-from matplotlib.axis import Tick
 
 from dist import dist_init, dist
 
