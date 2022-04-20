@@ -1,0 +1,5 @@
+Precomputing:
+- find shortest path between every base, hill, and food source
+
+
+Things to evaluate:
