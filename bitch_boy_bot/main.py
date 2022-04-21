@@ -9,6 +9,7 @@ import heapq
 from codequest22.stats import energy
 from dist import dist_init, dist
 import math
+import numpy as np
 
 
 def get_team_name():
@@ -120,6 +121,24 @@ def handle_failed_requests(requests):
             print(f"Request {req.__class__.__name__} failed. Reason: {req.reason}.")
             raise ValueError()
 
+def ants_around_tile(tile, radius):
+    #needs to be fixed when ants is implented properly
+    all_ants = dict(my_ants)
+    all_ants.update(opp1_ants)
+    all_ants.update(opp2_ants)
+    all_ants.update(opp3_ants)
+
+    surrounding = []
+    tile_pos = np.array(tile)+np.array((0.5,0.5))
+
+    for ident in all_ants.keys():
+        antpos = np.array(all_ants[ident]['pos'])
+        euclidean_dist = np.linalg.norm(antpos-tile_pos)
+        if euclidean_dist <= radius:
+            surrounding.append(ident)
+
+    return surrounding
+
 
 def food_source_power(tile):
     global food_map
@@ -132,7 +151,7 @@ def food_source_power(tile):
     delay = stats.energy.DELAY
     per_tick = stats.energy.PER_TICK
     #ants_around needs to be implented properly
-    ants_around = 1
+    ants_around = len(ants_around_tile(tile,3))+1
 
     #extend the domain of log
     ln = lambda x: -float('inf') if x == 0 else math.log(x)
@@ -165,11 +184,16 @@ def handle_events(events):
                 my_ants.pop(ev.ant_id)
         elif isinstance(ev,MoveEvent):
             if ev.player_index == my_index:
-                my_ants[ev.ant_id][2]=ev.position
+                my_ants[ev.ant_id]['pos'] = ev.position
 
         elif isinstance(ev, SpawnEvent):
             if ev.player_index == my_index:
-                my_ants[ev.ant_id]=[ev.ant_type,ev.goal,ev.position,ev.hp]
+                my_ants[ev.ant_id] = {
+                    'type': ev.ant_type,
+                    'goal': ev.goal,
+                    'pos': ev.position,
+                    'hp': ev.hp
+                }
 
         elif isinstance(ev, FoodTileActiveEvent) or isinstance(ev, FoodTileDeactivateEvent):
             #toggles overclocked status
