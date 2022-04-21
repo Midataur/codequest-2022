@@ -25,7 +25,6 @@ spawns = [None]*4
 food = []
 distance = {}
 closest_site = None
-total_ants = 0
 empty = []
 wall = []
 hill = []
@@ -144,7 +143,7 @@ def food_source_power(tile):
     return (baserate*oc_rate)/(travel_term+prob_term)
 
 def handle_events(events):
-    global my_energy, total_ants, food_map, my_ants
+    global my_energy, food_map, my_ants
     requests = []
 
     for ev in events:
@@ -163,9 +162,7 @@ def handle_events(events):
         elif isinstance(ev, DieEvent):
             if ev.player_index == my_index:
                 # One of my workers just died :(
-                total_ants -= 1
-                if ev.player_index == my_index:
-                    my_ants.pop(ev.ant_id)
+                my_ants.pop(ev.ant_id)
         elif isinstance(ev,MoveEvent):
             if ev.player_index == my_index:
                 my_ants[ev.ant_id][2]=ev.position
@@ -181,19 +178,14 @@ def handle_events(events):
     # Can I spawn ants?
     spawned_this_tick = 0
     while (
-        total_ants < stats.general.MAX_ANTS_PER_PLAYER and 
+        len(my_ants.keys())+spawned_this_tick < stats.general.MAX_ANTS_PER_PLAYER and 
         spawned_this_tick < stats.general.MAX_SPAWNS_PER_TICK and
         my_energy >= stats.ants.Worker.COST
     ):
         #find best possible goal
         goal = sorted(food_map.keys(), key=food_source_power)[-1]
 
-        #how the fuck did we get here?
-        if goal == (5,1):
-            print(food_source_power(5,1))
-
         spawned_this_tick += 1
-        total_ants += 1
         # Spawn an ant, give it some id, no color, and send it to the closest site.
         # I will pay the base cost for this ant, so cost=None.
         requests.append(SpawnRequest(AntTypes.WORKER, id=None, color=None, goal=goal))
