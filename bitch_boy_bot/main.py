@@ -2,7 +2,7 @@ from glob import glob
 from typing import overload
 from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
-from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent, MoveEvent, FoodTileActiveEvent, FoodTileDeactivateEvent
+from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent, MoveEvent, FoodTileActiveEvent, FoodTileDeactivateEvent, TeamDefeatedEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 import heapq
 
@@ -35,6 +35,7 @@ opp2_ants={}
 opp3_ants={}
 #tracks all food sites with useful info
 food_map = {}
+aggression = 90
 
 def read_map(md, energy_info):
     global map_data, spawns, food, distance, closest_site, food_sites, food_map
@@ -161,6 +162,16 @@ def food_source_power(tile):
     prob_term = (-delay/per_tick)*(ln(2)/(ln(ants_around-1)-ln(ants_around)))
     return (baserate*oc_rate)/(travel_term+prob_term)
 
+def attack_target():
+    global spawns, distances
+    possible = list(spawns)
+    
+    while None in possible:
+        possible.remove(None)
+
+    #attack the closest base
+    return sorted(possible, key=lambda x: distance[x])[1]
+
 def handle_events(events):
     global my_energy, food_map, my_ants
     requests = []
@@ -199,6 +210,10 @@ def handle_events(events):
             #toggles overclocked status
             food_map[ev.pos]['overclocked'] ^= True
 
+        elif isinstance(ev, TeamDefeatedEvent):
+            #toggles overclocked status
+            spawns[ev.defeated_index] = None
+
     # Can I spawn ants?
     spawned_this_tick = 0
     while (
@@ -209,10 +224,20 @@ def handle_events(events):
         #find best possible goal
         goal = sorted(food_map.keys(), key=food_source_power)[-1]
 
+        ant_class = AntTypes.WORKER
+        cost = stats.ants.Worker.COST
+
+        #start killing
+        if len(my_ants.keys())+spawned_this_tick >= aggression and my_energy >= stats.ants.Fighter.COST:
+            ant_class = AntTypes.FIGHTER
+            goal = attack_target()
+            cost = stats.ants.Fighter.COST
+            print('here i go killing again!')
+
         spawned_this_tick += 1
         # Spawn an ant, give it some id, no color, and send it to the closest site.
         # I will pay the base cost for this ant, so cost=None.
-        requests.append(SpawnRequest(AntTypes.WORKER, id=None, color=None, goal=goal))
-        my_energy -= stats.ants.Worker.COST
+        requests.append(SpawnRequest(ant_class, id=None, color=None, goal=goal))
+        my_energy -= cost
 
     return requests
