@@ -1,6 +1,6 @@
 from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
-from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent
+from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent, MoveEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 
 from dist import dist_init, dist
@@ -50,6 +50,7 @@ def read_map(md, energy_info):
     startpoint = spawns[my_index]
     # Dijkstra's Algorithm: Find the shortest path from your spawn to each food zone.
     # Step 1: Generate edges - for this we will just use orthogonally connected cells.
+    print(food)
     adj = {}
     h, w = len(map_data), len(map_data[0])
     # A list of all points in the grid
@@ -121,9 +122,15 @@ def handle_events(events):
             if ev.player_index == my_index:
                 # One of my workers just died :(
                 total_ants -= 1
+                if ev.player_index == my_index:
+                    my_ants.pop(ev.ant_id)
+        elif isinstance(ev,MoveEvent):
+            if ev.player_index == my_index:
+                my_ants[ev.ant_id][2]=ev.position
+
         elif isinstance(ev, SpawnEvent):
             if ev.player_index == my_index:
-                my_ants[ev.ant_id]=ev.ant_id
+                my_ants[ev.ant_id]=[ev.ant_type,ev.goal,ev.position,ev.hp]
 
     # Can I spawn ants?
     spawned_this_tick = 0
