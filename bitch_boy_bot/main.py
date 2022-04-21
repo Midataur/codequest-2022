@@ -2,7 +2,7 @@ from glob import glob
 from typing import overload
 from codequest22.server.ant import AntTypes
 import codequest22.stats as stats
-from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent, MoveEvent, FoodTileActiveEvent, FoodTileDeactivateEvent, TeamDefeatedEvent
+from codequest22.server.events import DepositEvent, DieEvent, ProductionEvent, SpawnEvent, MoveEvent, FoodTileActiveEvent, FoodTileDeactivateEvent, TeamDefeatedEvent, ZoneActiveEvent
 from codequest22.server.requests import GoalRequest, SpawnRequest
 import heapq
 
@@ -35,7 +35,10 @@ opp2_ants={}
 opp3_ants={}
 #tracks all food sites with useful info
 food_map = {}
+#threshold for spawning fighters; higher is less aggresive
 aggression = 90
+#how many slots we should leave free for special spawns
+buffer = 2
 
 def read_map(md, energy_info):
     global map_data, spawns, food, distance, closest_site, food_sites, food_map
@@ -176,6 +179,8 @@ def handle_events(events):
     global my_energy, food_map, my_ants
     requests = []
 
+    spawned_this_tick = 0
+
     for ev in events:
         if isinstance(ev, DepositEvent):
             if ev.player_index == my_index:
@@ -214,10 +219,15 @@ def handle_events(events):
             #toggles overclocked status
             spawns[ev.defeated_index] = None
 
+        elif isinstance(ev, ZoneActiveEvent):
+            if my_energy >= stats.ants.Settler.COST and len(my_ants.keys()) <= stats.general.MAX_ANTS_PER_PLAYER:
+                spawned_this_tick += 1
+                my_energy -= stats.ants.Settler.COST
+                requests.append(SpawnRequest(ant_class, id=None, color=None, goal=ev.points[0]))
+
     # Can I spawn ants?
-    spawned_this_tick = 0
     while (
-        len(my_ants.keys())+spawned_this_tick < stats.general.MAX_ANTS_PER_PLAYER and 
+        len(my_ants.keys())+spawned_this_tick+buffer < stats.general.MAX_ANTS_PER_PLAYER and 
         spawned_this_tick < stats.general.MAX_SPAWNS_PER_TICK and
         my_energy >= stats.ants.Worker.COST
     ):
